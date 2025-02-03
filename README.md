@@ -23,26 +23,26 @@ Run development server with hot-reload:
 - Linux:
 
   ```sh
-  nohup ibazel build //:dev > /dev/null 2>&1 & ; bazel run //:dev ; kill $!
+  nohup ibazel build //website:dev > /dev/null 2>&1 & ; bazel run //website:dev ; kill $!
   ```
 
 - Windows:
 
   ```powershell
-  $p = Start-Process -WindowStyle Hidden ibazel 'build //:dev' -PassThru ; try { bazel run //:dev } finally { $p.Kill() }
+  $p = Start-Process -WindowStyle Hidden ibazel 'build //website:dev' -PassThru ; try { bazel run //website:dev } finally { $p.Kill() }
   ```
 
 Build and get path to build directory, e.g. to upload its files somewhere:
 
 ```sh
-bazel build //:build
-bazel cquery --output=files //:build
+bazel build //website:build
+bazel cquery --output=files //website:build
 ```
 
 Run non-production static server with built files:
 
 ```sh
-bazel run //:preview
+bazel run //website:preview
 ```
 
 Run tests (ESLint, TSC type checks):
