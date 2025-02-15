@@ -1,0 +1,22 @@
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react-swc";
+import { vanillaExtractPlugin } from "@vanilla-extract/vite-plugin";
+
+// https://vite.dev/config/
+export default defineConfig({
+	base: "%%BASE_URL%%",
+	build: {
+		rollupOptions: {
+			external: ["d3", "react", "react-dom/client", "react-router"],
+			output: {
+				paths: {
+					d3: "https://esm.sh/d3@7.9.0",
+					react: "https://esm.sh/react@19.0.0",
+					"react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
+					"react-router": "https://esm.sh/react-router@7.1.5",
+				},
+			},
+		},
+	},
+	plugins: [react(), vanillaExtractPlugin()],
+});

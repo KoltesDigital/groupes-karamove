@@ -20,3 +20,50 @@ use_repo(rules_ts_ext, "npm_typescript")
 
 bazel_dep(name = "aspect_rules_swc", version = "2.4.1")
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "platforms", version = "0.0.11")
+
+bazel_dep(name = "rules_rust", version = "0.60.0")
+
+crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate")
+crate.from_cargo(
+    name = "crates",
+    cargo_lockfile = "//:Cargo.lock",
+    manifests = [
+        "//:Cargo.toml",
+        "//data_extractor:Cargo.toml",
+    ],
+)
+use_repo(crate, "crates")
+
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+# You may need to upgrade these versions, as they are regularly pruned.
+http_archive(
+    name = "ffmpeg_linux",
+    url = "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2025-01-31-12-58/ffmpeg-N-118385-g0225fe857d-linux64-gpl.tar.xz",
+    integrity = "sha256-grUD90V8ojrrc77EgmQ7CqHVWmx55GwEJ0GP4lXjEXM=",
+    strip_prefix = "ffmpeg-N-118385-g0225fe857d-linux64-gpl/bin/",
+    build_file_content = """
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "ffmpeg",
+    "ffprobe",
+])
+""",
+)
+
+http_archive(
+    name = "ffmpeg_windows",
+    url = "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2025-01-31-12-58/ffmpeg-N-118385-g0225fe857d-win64-gpl.zip",
+    integrity = "sha256-0m4d/fcHlUv+/8TZwyGesXEtfB75WHiM5QJFOXyElsc=",
+    strip_prefix = "ffmpeg-N-118385-g0225fe857d-win64-gpl/bin/",
+    build_file_content = """
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "ffmpeg.exe",
+    "ffprobe.exe",
+])
+""",
+)

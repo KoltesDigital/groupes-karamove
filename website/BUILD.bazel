@@ -1,18 +1,50 @@
+load("@bazel_skylib//rules:copy_directory.bzl", "copy_directory")
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
-load("@npm//website:vite/package_json.bzl", vite_bin = "bin")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 load("@npm//:eslint/package_json.bzl", eslint_bin = "bin")
-load(":defs.bzl", "type_check")
+load("@npm//website:vite/package_json.bzl", vite_bin = "bin")
+load("//:edition.bzl", "WITH_MUSIC")
+load(":defs.bzl", "edition_expand_template", "type_check")
 
 package(default_visibility = ["//visibility:public"])
 
 npm_link_all_packages()
 
 copy_file(
-    name = "hello_world",
-    src = "//generator:hello_world",
-    out = "generator/hello-world.ts",
+    name = "music",
+    src = "//:music_ogg",
+    out = "public/music.ogg",
+)
+
+copy_file(
+    name = "data",
+    src = "//:data",
+    out = "public/data.json",
+)
+
+copy_directory(
+    name = "music_segments",
+    src = "//:music_segments",
+    out = "public/music-segments",
+)
+
+edition_expand_template(
+    name = "root_htaccess",
+    out = "public/.htaccess",
+    template = "root.htaccess.tmpl",
+)
+
+copy_file(
+    name = "assets_htaccess",
+    src = "assets.htaccess",
+    out = "public/assets/.htaccess",
+)
+
+edition_expand_template(
+    name = "vite_config",
+    out = "vite.config.ts",
+    template = "vite.config.ts.tmpl",
 )
 
 filegroup(
@@ -21,12 +53,21 @@ filegroup(
         "src/**",
     ]) + [
         "index.html",
-        ":hello_world",
+        ":assets_htaccess",
+        ":data",
+        ":node_modules/@types/d3",
         ":node_modules/@types/react",
         ":node_modules/@types/react-dom",
+        ":node_modules/@vanilla-extract/css",
+        ":node_modules/d3",
         ":node_modules/react",
         ":node_modules/react-dom",
-    ],
+        ":node_modules/react-router",
+        ":root_htaccess",
+    ] + ([
+        ":music",
+        ":music_segments",
+    ] if WITH_MUSIC else []),
 )
 
 filegroup(
@@ -34,18 +75,12 @@ filegroup(
     srcs = glob([
         "tsconfig.*",
     ]) + [
-        "vite.config.ts",
         ":node_modules/@types/node",
+        ":node_modules/@vanilla-extract/vite-plugin",
         ":node_modules/@vitejs/plugin-react-swc",
         ":node_modules/vite",
+        ":vite_config",
     ],
-)
-
-filegroup(
-    name = "assets",
-    srcs = glob([
-        "public/**",
-    ]),
 )
 
 filegroup(
@@ -54,7 +89,6 @@ filegroup(
         "tsconfig.*",
     ]) + [
         "package.json",
-        ":assets",
         ":configuration",
         ":sources",
     ],
@@ -124,6 +158,7 @@ eslint_bin.eslint_test(
     data = [
         "eslint.config.mjs",
         ":files",
+        ":node_modules/eslint-plugin-sort-keys-fix",
         "//:node_modules/@eslint/js",
         "//:node_modules/eslint-plugin-react-hooks",
         "//:node_modules/eslint-plugin-react-refresh",

@@ -1,0 +1,5 @@
+[workspace]
+	members = ["data_extractor"]
+
+[workspace.package]
+	edition = "2021"

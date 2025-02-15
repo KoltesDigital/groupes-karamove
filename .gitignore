@@ -1,3 +1,6 @@
 node_modules/
 /bazel-*
+/target
+/data.csv
+/music.wav
 /user.bazelrc

@@ -1,3 +1,67 @@
 load("@npm//:defs.bzl", "npm_link_all_packages")
+load(":defs.bzl", "generate_data", "generate_music_segments")
+load(":edition.bzl", "DATA_FILE", "MUSIC_FILE")
+
+package(default_visibility = ["//visibility:public"])
 
 npm_link_all_packages()
+
+config_setting(
+    name = "is_x64_linux",
+    constraint_values = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:linux",
+    ],
+)
+
+config_setting(
+    name = "is_x64_windows",
+    constraint_values = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:windows",
+    ],
+)
+
+alias(
+    name = "ffmpeg",
+    actual = select({
+        ":is_x64_linux": "@ffmpeg_linux//:ffmpeg",
+        ":is_x64_windows": "@ffmpeg_windows//:ffmpeg.exe",
+    }),
+)
+
+alias(
+    name = "ffprobe",
+    actual = select({
+        ":is_x64_linux": "@ffmpeg_linux//:ffprobe",
+        ":is_x64_windows": "@ffmpeg_windows//:ffprobe.exe",
+    }),
+)
+
+generate_data(
+    name = "data",
+    data_file = DATA_FILE,
+    music_info = ":music_info",
+)
+
+generate_music_segments(
+    name = "music_segments",
+    data_file = DATA_FILE,
+    music_file = MUSIC_FILE,
+)
+
+genrule(
+    name = "music_ogg",
+    srcs = [MUSIC_FILE],
+    outs = ["music.ogg"],
+    cmd = "$(location :ffmpeg) -hide_banner -loglevel error -i \"$<\" \"$@\"",
+    tools = [":ffmpeg"],
+)
+
+genrule(
+    name = "music_info",
+    srcs = [MUSIC_FILE],
+    outs = ["music_info.json"],
+    cmd = "$(location :ffprobe) -hide_banner -loglevel error -print_format json -show_format \"$<\" > \"$@\"",
+    tools = [":ffprobe"],
+)
